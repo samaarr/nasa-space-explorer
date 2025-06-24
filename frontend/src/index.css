@@ -13,13 +13,30 @@ body {
   @apply font-sans     bg-gray-900   text-white      antialiased m-0 min-h-screen;
 }
 
-
-
 @media (prefers-color-scheme: light) {
   body {
     @apply bg-white text-gray-900;
   }
 }
+
+.neo-chart {
+  background: radial-gradient(circle at center, rgba(0,0,0,0.6) 0%, transparent 80%);
+}
+
+.neo-tip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  pointer-events: none;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+
 
 /* Add this to your global stylesheet */
 .custom-scrollbar::-webkit-scrollbar {

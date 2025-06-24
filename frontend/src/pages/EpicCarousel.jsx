@@ -24,6 +24,7 @@ export default function EpicCarousel() {
   const [imgLoading,   setImgLoading]   = useState(false); // pre-caching jpgs
   const [error,        setError]        = useState(false);
 
+  
   /* fetch list on date change */
   useEffect(() => {
     setJsonLoading(true);

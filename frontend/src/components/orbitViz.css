@@ -1,0 +1,40 @@
+.orbit-bg{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  overflow:hidden;
+  background:#000;
+}
+
+/* NEW: Earth glyphs to hint foci (optional—remove if unwanted) */
+.earth-right { position:absolute; top:50%; right:1rem; transform:translateY(-50%); font-size:1.4rem; }
+
+
+.earth{
+  position:absolute;
+  bottom:1.5rem;
+  right:1.5rem;
+  font-size:2rem;
+}
+
+.orbit{
+  position:absolute;
+  border:1px solid rgba(255,255,255,.2);  /* slightly brighter */
+  border-radius:50%;
+  animation:spin linear infinite;
+}
+
+.dot{
+  position:absolute;
+  top:50%;
+  left:0;
+  width:6px;height:6px;
+  border-radius:50%;
+  transform:translateY(-50%);
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg);}
+  to  {transform:rotate(360deg);}
+}

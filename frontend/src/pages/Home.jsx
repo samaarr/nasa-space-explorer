@@ -5,6 +5,7 @@ import EpicCarousel from "./EpicCarousel";
 import MarsGallery  from "./MarsGallery";
 
 
+
 /**
  * Home — landing page that stitches all three feature sections
  * together and lets <HeroSection/> scroll smoothly to each.

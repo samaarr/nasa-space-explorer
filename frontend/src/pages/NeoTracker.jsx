@@ -1,206 +1,115 @@
 import { useEffect, useMemo, useState } from "react";
-import { api }               from "../services/nasaApi";
-import LoadingOverlay        from "../components/LoadingOverlay";
-import ErrorBanner           from "../components/ErrorBanner";
+import { api }            from "../services/nasaApi";
+import LoadingOverlay     from "../components/LoadingOverlay";
+import ErrorBanner        from "../components/ErrorBanner";
+import NeoPolarChart      from "../components/NeoPolarChart";
 
-/* ───── constants ───── */
-const todayISO = new Date().toISOString().slice(0, 10);
-const sixMonthsAgo = new Date(Date.now() - 183 * 864e5)
-  .toISOString()
-  .slice(0, 10);
+const todayISO     = new Date().toISOString().slice(0, 10);
+const oneWeekAgo   = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
 
 export default function NeoTracker() {
-  /* ---------- dates ---------- */
-  const [start, setStart] = useState(sixMonthsAgo);
-  const [end,   setEnd]   = useState(todayISO);
+  const [range, setRange] = useState({ start: oneWeekAgo, end: todayISO });
+  const [neos,  setNeos]  = useState([]);
+  const [loading, setL]   = useState(true);
+  const [error,   setE]   = useState(false);
+  const [selected, setSel]= useState(null);
 
-  /* ---------- data + ui ---------- */
-  const [neos,      setNeos]      = useState([]);    // flat array
-  const [selected,  setSelected]  = useState(null);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(false);
+  const [filter, setFilter] = useState({ minSize: 0, maxMiss: 8e6, hazOnly: false });
 
-  /* ---------- filters ---------- */
-  const [filter, setFilter] = useState({
-    minSize: 0,
-    maxMiss: 8e6,            // 8 000 000 km
-    hazardousOnly: false,
-  });
-
-  /* ---------- fetch whenever range changes ---------- */
   useEffect(() => {
-    setLoading(true);
-    setError(false);
+    setL(true); setE(false);
+    api.get(`/neo-range?start=${range.start}&end=${range.end}`)
+       .then(r => setNeos(Object.values(r.data.near_earth_objects).flat()))
+       .catch(() => setE(true))
+       .finally(() => setL(false));
+  }, [range]);
 
-    api
-      .get(`/neo-range?start=${start}&end=${end}`)
-      .then(res => {
-        const flat = Object.values(res.data.near_earth_objects).flat();
-        setNeos(flat);
-        setSelected(null);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [start, end]);
+  const list = useMemo(() => neos.filter(n => {
+    const diam = n.estimated_diameter.meters.estimated_diameter_max;
+    const miss = +n.close_approach_data[0].miss_distance.kilometers;
+    if (diam < filter.minSize) return false;
+    if (miss > filter.maxMiss) return false;
+    if (filter.hazOnly && !n.is_potentially_hazardous_asteroid) return false;
+    return true;
+  }), [neos, filter]);
 
-  /* ---------- derived list ---------- */
-  const filteredNeos = useMemo(() => {
-    return neos.filter(n => {
-      const diam = n.estimated_diameter.meters.estimated_diameter_max;
-      const miss = Number(n.close_approach_data[0].miss_distance.kilometers);
-
-      if (diam < filter.minSize) return false;
-      if (miss > filter.maxMiss) return false;
-      if (filter.hazardousOnly && !n.is_potentially_hazardous_asteroid)
-        return false;
-      return true;
-    });
-  }, [neos, filter]);
-
-  /* ---------- ui states ---------- */
   if (loading) return <LoadingOverlay />;
-  if (error)   return <ErrorBanner msg="Near-Earth Object service unavailable" />;
+  if (error)   return <ErrorBanner msg="NEO API unavailable" />;
 
-  /* ---------- render ---------- */
   return (
-    <div
-      className="min-h-screen p-6 font-sans text-[#fdfeff]"
-      style={{ background: "linear-gradient(to bottom, #0d1b2a, #000000)" }}
-    >
-      <h1 className="text-2xl font-bold mb-4 text-center text-[#62aed0]">
-        ☄️ NEO Tracker
-      </h1>
+    <div className="min-h-screen bg-black text-white font-sans p-6">
+      <h1 className="text-2xl font-bold mb-4">☄️ NEO Tracker</h1>
 
-      {/* Date range pickers */}
-      <div className="flex flex-wrap gap-4 mb-6 items-end">
-        <div>
-          <label className="block mb-1 text-sm">Start date</label>
-          <input
-            type="date"
-            value={start}
-            max={end}
-            onChange={e => setStart(e.target.value)}
-            className="px-3 py-1 rounded text-black"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 text-sm">End date</label>
-          <input
-            type="date"
-            value={end}
-            min={start}
-            max={todayISO}
-            onChange={e => setEnd(e.target.value)}
-            className="px-3 py-1 rounded text-black"
-          />
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-6 mb-8 text-[#bcdcf3] text-sm">
-        <div>
-          <label>Min size (m)</label>
-          <input
-            type="number"
-            className="ml-2 w-20 text-black px-1 py-0.5 rounded"
-            value={filter.minSize}
-            onChange={e => setFilter({ ...filter, minSize: +e.target.value })}
-          />
-        </div>
-        <div>
-          <label>Max miss dist (km)</label>
-          <input
-            type="number"
-            className="ml-2 w-28 text-black px-1 py-0.5 rounded"
-            value={filter.maxMiss}
-            onChange={e => setFilter({ ...filter, maxMiss: +e.target.value })}
-          />
-        </div>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={filter.hazardousOnly}
-            onChange={e => setFilter({ ...filter, hazardousOnly: e.target.checked })}
-          />
-          Hazardous only
+      {/* Controls */}
+      <div className="flex flex-wrap gap-4 mb-6 text-sm">
+        <DateInput label="Start" value={range.start} max={range.end}
+                   onChange={v=>setRange({...range,start:v})}/>
+        <DateInput label="End"   value={range.end}   min={range.start} max={todayISO}
+                   onChange={v=>setRange({...range,end:v})}/>
+        <Num label="Min size (m)" val={filter.minSize}
+             onC={v=>setFilter({...filter,minSize:v})}/>
+        <Num label="Max miss (km)" val={filter.maxMiss}
+             onC={v=>setFilter({...filter,maxMiss:v})}/>
+        <label className="inline-flex items-center gap-2">
+          <input type="checkbox" checked={filter.hazOnly}
+                 onChange={e=>setFilter({...filter,hazOnly:e.target.checked})}/>
+          Hazardous
         </label>
-        <span className="ml-auto">{filteredNeos.length} of {neos.length} match</span>
+        <span className="ml-auto text-gray-400">
+          {list.length}/{neos.length} match
+        </span>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* list */}
-        <div className="w-full md:w-1/2 h-[70vh] overflow-y-auto pr-2">
-          {filteredNeos.length === 0 ? (
-            <p className="text-red-400">No NEOs match.</p>
-          ) : (
-            <ul className="space-y-3">
-              {filteredNeos.map(neo => (
-                <li
-                  key={neo.id}
-                  onClick={() => setSelected(neo)}
-                  className="bg-[#1d212c] p-3 rounded cursor-pointer border border-[#534f6a] hover:bg-[#2a2e3c] transition"
-                >
-                  <h3 className="font-bold text-[#fdfeff]">{neo.name}</h3>
-                  <p className="text-xs text-[#bcdcf3]">
-                    Diameter {neo.estimated_diameter.meters.estimated_diameter_min.toFixed(0)}–
-                    {neo.estimated_diameter.meters.estimated_diameter_max.toFixed(0)} m •
-                    Miss {Number(neo.close_approach_data[0].miss_distance.kilometers).toLocaleString()} km
-                  </p>
-                  <p
-                    className={`text-xs ${
-                      neo.is_potentially_hazardous_asteroid ? "text-red-400" : "text-green-400"
-                    }`}
-                  >
-                    {neo.is_potentially_hazardous_asteroid ? "Hazardous" : "Safe"}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
+      {/* Chart + detail */}
+      <div className="flex flex-wrap gap-8">
+        <div className="flex-1 min-w-[300px] flex justify-center items-center">
+          {/* chart is 460×460 but responsive wrapper works too */}
+          <NeoPolarChart data={list} onSelect={setSel} width={460} height={460} />
         </div>
 
-        {/* detail */}
-        <div className="w-full md:w-1/2">
-          {selected ? (
-            <DetailCard neo={selected} />
-          ) : (
-            <p className="text-[#bcdcf3] italic mt-4">
-              Select a NEO to view details.
+        {selected && (
+          <div className="flex-1 min-w-[260px] border border-gray-700 p-6 rounded-lg bg-[#22252d] text-sm leading-relaxed">
+            <h2 className="text-xl font-bold mb-2">{selected.name}</h2>
+            <p><strong>Diameter:</strong>&nbsp;
+               {selected.estimated_diameter.meters.estimated_diameter_min.toFixed(0)}–
+               {selected.estimated_diameter.meters.estimated_diameter_max.toFixed(0)}&nbsp;m
             </p>
-          )}
-        </div>
+            <p><strong>Miss&nbsp;Distance:</strong>&nbsp;
+               {(+selected.close_approach_data[0].miss_distance.kilometers).toLocaleString()}&nbsp;km
+            </p>
+            <p><strong>Speed:</strong>&nbsp;
+               {(+selected.close_approach_data[0].relative_velocity.kilometers_per_hour).toLocaleString()}&nbsp;km/h
+            </p>
+            <p><strong>Status:</strong>&nbsp;
+               {selected.is_potentially_hazardous_asteroid
+                 ? <span className="text-red-400 font-semibold">⚠ Hazardous</span>
+                 : <span className="text-green-400 font-semibold">✓ Safe</span>}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-/* ----- Details component & helpers -------------------------------- */
-function DetailCard({ neo }) {
+/* tiny inputs --------------------------------------------------- */
+function DateInput({ label, value, onChange, min, max }) {
   return (
-    <div className="bg-[#10131a] p-4 rounded shadow text-sm space-y-4 border border-[#4980a7]">
-      <h2 className="text-xl font-bold text-[#bcdcf3]">{neo.name}</h2>
-      <InfoBlock title="💠 Diameter (m)">
-        {neo.estimated_diameter.meters.estimated_diameter_min.toFixed(1)}–{" "}
-        {neo.estimated_diameter.meters.estimated_diameter_max.toFixed(1)}
-      </InfoBlock>
-      <InfoBlock title="🚀 Speed (km/h)">
-        {parseFloat(neo.close_approach_data[0].relative_velocity.kilometers_per_hour).toFixed(2)}
-      </InfoBlock>
-      <InfoBlock title="🪐 Miss Distance (km)">
-        {parseFloat(neo.close_approach_data[0].miss_distance.kilometers).toFixed(0)}
-      </InfoBlock>
-      <InfoBlock title="🛰 Orbiting Body">
-        {neo.close_approach_data[0].orbiting_body}
-      </InfoBlock>
-    </div>
+    <label className="text-sm">
+      {label}
+      <input type="date" value={value} min={min} max={max}
+             onChange={e=>onChange(e.target.value)}
+             className="ml-1 px-1 text-black rounded"/>
+    </label>
   );
 }
-
-function InfoBlock({ title, children }) {
+function Num({ label, val, onC }) {
   return (
-    <div>
-      <p className="font-semibold text-[#62aed0]">{title}</p>
-      <div>{children}</div>
-    </div>
+    <label className="text-sm">
+      {label}
+      <input type="number" value={val}
+             onChange={e=>onC(+e.target.value)}
+             className="ml-1 px-1 w-24 text-black rounded"/>
+    </label>
   );
 }
