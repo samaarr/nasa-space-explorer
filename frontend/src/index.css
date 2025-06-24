@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Planet Kosmos';
+  src: url('/src/assets/fonts/PlanetKosmos-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  @apply font-grotesk bg-background text-textMain antialiased m-0 min-h-screen;
+}
+
+a {
+  @apply font-medium text-accentBlue hover:text-blue-400 no-underline transition duration-200;
+}
+
+button {
+  @apply rounded border border-transparent px-4 py-2 text-base font-medium bg-card text-textMain hover:border-accentBlue transition duration-200;
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    @apply bg-white text-gray-900;
+  }
+}
+
+/* Add this to your global stylesheet */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1f2937; /* dark gray */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4f46e5; /* indigo */
+  border-radius: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
+}
