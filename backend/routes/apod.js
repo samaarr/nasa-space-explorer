@@ -1,44 +1,25 @@
-import express from 'express';
-import { fetchFromNASA } from '../utils/fetchWrapper.js';
+// routes/apod.js
+const express = require('express');
+const router  = express.Router();
+const { getApod } = require('../utils/nasaClient');
 
-const router = express.Router();
+function yyyymmdd(d) { return d.toISOString().slice(0, 10); }
 
-router.get('/', async (req, res) => {
-  const inputDate = req.query.date || new Date().toISOString().split('T')[0];
-  const API_KEY = process.env.NASA_API_KEY;
-
-  console.log('🧪 Apod NASA_API_KEY:', !!API_KEY);
-
-  const buildUrl = (date) =>
-    `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&date=${date}`;
-
-  const formatDate = (dateObj) => dateObj.toISOString().split('T')[0];
-
-  const tryFetch = async (date) => {
-    const url = buildUrl(date);
-    console.log('🔭 Fetching from:', url);
-    return await fetchFromNASA(url);
-  };
+router.get('/', async (req, res, next) => {
+  const today = req.query.date || yyyymmdd(new Date());
 
   try {
-    const data = await tryFetch(inputDate);
-    res.json(data);
+    return res.json(await getApod({ date: today }));
   } catch (err) {
-    console.warn(`⚠️ Failed for ${inputDate}, retrying with previous day...`);
-
-    // Try the previous day
-    const fallbackDateObj = new Date(inputDate);
-    fallbackDateObj.setDate(fallbackDateObj.getDate() - 1);
-    const fallbackDate = formatDate(fallbackDateObj);
-
-    try {
-      const fallbackData = await tryFetch(fallbackDate);
-      res.json(fallbackData);
-    } catch (fallbackErr) {
-      console.error('❌ Both primary and fallback APOD fetch failed:', fallbackErr.message);
-      res.status(500).json({ error: 'Failed to fetch APOD data for both dates' });
+    if (err.response?.status === 404) {
+      // try previous day
+      const yesterday = yyyymmdd(new Date(Date.parse(today) - 864e5));
+      try {
+        return res.json({ ...(await getApod({ date: yesterday })), stale: true });
+      } catch (_) { /* fall through */ }
     }
+    next(err);          // real error
   }
 });
 
-export default router;
+module.exports = router;

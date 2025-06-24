@@ -1,75 +1,121 @@
-import { useEffect, useState } from 'react';
-import { fetchApod } from '../services/nasaApi';
-import { FiInfo } from 'react-icons/fi';
-import { FiChevronDown } from 'react-icons/fi';
+import { useEffect, useState } from "react";
+import { api }            from "../services/nasaApi";
+import Spinner            from "./Spinner";
+import ErrorBanner        from "./ErrorBanner";
 
-console.log('🛠 HeroSection loaded');
+/* --- Info icon with subtle glow ---------------------------------- */
+
+const InfoIcon = ({ onEnter, onLeave }) => (
+  <button
+    onMouseEnter={onEnter}
+    onMouseLeave={onLeave}
+    className="
+      group                                  {/* ← needed for group-hover */}
+      absolute top-20 right-8 z-10
+      p-1
+      flex items-center justify-center
+      h-8 w-8 rounded-full
+      backdrop-blur-md bg-white/30
+      text-white/90 hover:text-white
+      focus:outline-none
+    "
+    title="Show description"
+  >
+    {/* pulsating ring */}
+    <span
+      className="
+        absolute inset-0 rounded-full
+        bg-white/100 opacity-0
+        group-hover:opacity-100           {/* appears only on hover */}
+        animate-pulse-slow               {/* slow glow */}
+        pointer-events-none
+      "
+    />
+    <span className="text-base font-semibold relative">i</span>
+  </button>
+);
+
+
 
 export default function HeroSection({ onScrollTo }) {
-  const [apod, setApod] = useState(null);
+  /* ─ state ─ */
+  const [apod,    setApod]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
+  /* ─ fetch APOD on mount ─ */
   useEffect(() => {
-    console.log('🚀 HeroSection mounted');
-    const today = new Date().toISOString().split('T')[0];
-    fetchApod(today)
-      .then((data) => {
-        console.log('✅ APOD fetch success:', data);
-        setApod(data);
-      })
-      .catch((err) => console.error('❌ APOD fetch failed:', err));
+    api.get("/apod")
+       .then(r => setApod(r.data))
+       .catch(() => setError(true))
+       .finally(() => setLoading(false));
   }, []);
 
-  if (!apod) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-black text-white text-lg">
-        Loading APOD...
-      </div>
-    );
-  }
+  /* ─ early states ─ */
+  if (loading) return <Spinner className="mx-auto my-20" />;
+  if (error)   return <ErrorBanner msg="APOD unavailable" />;
 
+  /* ─ main render ─ */
   return (
-    <div
-      className="h-screen bg-cover bg-center relative"
-      style={{ backgroundImage: `url(${apod.url})` }}
-    >
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/20 z-0" />
+    <section className="relative w-full h-screen text-white">
+      {/* background image */}
+      <img
+        src={apod.url}
+        alt={apod.title}
+        className="object-cover w-full h-full"
+      />
 
-      {/* Info Icon */}
-      <div className="absolute top-4 right-4 z-20">
-        <button
-          onMouseEnter={() => setShowInfo(true)}
-          onMouseLeave={() => setShowInfo(false)}
-          className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition text-white"
-          aria-label="Show description"
-        >
-          <FiInfo size={22} />
-        </button>
-      </div>
-
-      {/* Main Text Content */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6 text-white">
-        {!showInfo ? (
-          <h1 className="text-4xl sm:text-5xl font-semibold tracking-wide mb-4 drop-shadow-lg max-w-3xl transition-opacity duration-300">
+      {/* overlay container */}
+      <div className="absolute inset-0 flex items-center justify-center px-4">
+        {/* title (visible by default, hidden on hover) */}
+        {!showInfo && (
+          <h1
+            className="
+              text-4xl md:text-6xl font-bold text-center
+              drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]
+            "
+          >
             {apod.title}
           </h1>
-        ) : (
-          <p className="text-white/70 text-sm max-w-3xl leading-relaxed px-4 backdrop-blur-sm transition-opacity duration-300">
+        )}
+
+        {/* description (shown on icon hover) */}
+        
+        {showInfo && (
+          
+          <div
+            className="
+              max-w-3xl text-sm md:text-base leading-relaxed text-center
+              drop-shadow-[0_1px_4px_rgba(0,0,0,1)]
+            "
+          >
             {apod.explanation}
-          </p>
+          </div>
         )}
       </div>
 
-      {/* Bottom Center Explore Button */}
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-10">
+      {/* info icon */}
+      
+      <InfoIcon
+
+        onEnter={() => setShowInfo(true)}
+        onLeave={() => setShowInfo(false)}
+      />
+
+      {/* optional CTA to next section */}
+      {onScrollTo && (
         <button
-          onClick={() => onScrollTo('neo')}
-          className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg border border-white/30 transition-all duration-200"
+          onClick={() => onScrollTo("neo")}
+          className="
+            absolute bottom-8 left-1/2 -translate-x-1/2
+            text-sm px-4 py-2 rounded
+            bg-white/20 hover:bg-white/30 backdrop-blur-md
+          "
         >
-          Explore
+          Explore ↓
         </button>
-      </div>
-    </div>
+      )}
+    </section>
   );
 }

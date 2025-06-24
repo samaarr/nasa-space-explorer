@@ -1,33 +1,26 @@
-import dotenv from 'dotenv';
-dotenv.config(); // must come before everything else
+require('dotenv').config();          // load .env first
 
-console.log('🧪 Load NASA_API_KEY:', !!process.env.NASA_API_KEY);
+const express = require('express');
+const cors    = require('cors');
 
-import express from 'express';
-import cors from 'cors';
-
-import apodRoute from './routes/apod.js';
-import marsRoute from './routes/mars.js';
-import neoRoute from './routes/neo.js';
-import epicRoute from './routes/epic.js';
-
-
+const apodRoute = require('./routes/apod');   // each one IS a router function
+const marsRoute = require('./routes/mars');
+const neoRoute  = require('./routes/neo');
+const epicRoute = require('./routes/epic');
+const neoRangeRoute = require("./routes/neoRange");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
 app.use(cors());
 app.use(express.json());
 
 app.use('/api/apod', apodRoute);
 app.use('/api/mars', marsRoute);
-app.use('/api/neo', neoRoute);
+app.use('/api/neo',  neoRoute);
 app.use('/api/epic', epicRoute);
+app.use("/api/neo-range", neoRangeRoute);
 
-app.get('/', (req, res) => {
-  res.send('🌌 NASA API backend is running.');
-});
+// health-check for Render/Vercel probes
+app.get('/healthz', (_, res) => res.send('OK'));
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`🚀 Server running at http://127.0.0.1:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀  backend up on port ${PORT}`));

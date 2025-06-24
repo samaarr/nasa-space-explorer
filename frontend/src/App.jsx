@@ -15,9 +15,13 @@ console.log('✅ App.jsx loaded');
 
 export default function App() {
   return (
+    
     <BrowserRouter>
+    <Navbar />
+    
+
       <div className="relative min-h-screen font-grotesk bg-background text-textMain dark:bg-darkBg dark:text-darkText">
-        <Navbar />
+        
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/mars" element={<MarsGallery />} />

@@ -10,16 +10,10 @@
 }
 
 body {
-  @apply font-grotesk bg-background text-textMain antialiased m-0 min-h-screen;
+  @apply font-sans     bg-gray-900   text-white      antialiased m-0 min-h-screen;
 }
 
-a {
-  @apply font-medium text-accentBlue hover:text-blue-400 no-underline transition duration-200;
-}
 
-button {
-  @apply rounded border border-transparent px-4 py-2 text-base font-medium bg-card text-textMain hover:border-accentBlue transition duration-200;
-}
 
 @media (prefers-color-scheme: light) {
   body {
