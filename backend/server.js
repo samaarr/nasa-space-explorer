@@ -24,7 +24,7 @@ app.use('/api/neo',  neoRoute);
 app.use('/api/epic', epicRoute);
 app.use("/api/neo-range", neoRangeRoute);
 
-// health-check for Render/Vercel probes
+// Health-check endpoint for deployment platforms
 app.get('/healthz', (_, res) => res.send('OK'));
 
 const PORT = process.env.PORT;
@@ -32,5 +32,14 @@ if (!PORT) {
   console.error("❌ No PORT env var set!");
   process.exit(1);
 }
+
+app.get('/', (req, res) => {
+  res.send(`
+    <div style="font-family: monospace; padding: 2rem;">
+      <h1>✅ NASA Explorer Backend Running</h1>
+      <p>You're seeing this because the server is up and ready.</p>
+    </div>
+  `);
+});
 
 app.listen(PORT, () => console.log(`🚀  backend up on port ${PORT}`));
