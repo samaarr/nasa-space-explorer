@@ -6,7 +6,7 @@ A full-stack web application that leverages NASA's Open APIs to create a stunnin
 
 ## Live Deployment
 
-* **Frontend (Vercel)**: https://nasa-space-explorer-qk3b.onrender.com/
+* **Frontend (Render)**: https://nasa-space-explorer-qk3b.onrender.com/
 * **Backend (Render)**: https://nasa-space-explorer-2-hozv.onrender.com/
 
 ---
