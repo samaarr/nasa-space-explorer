@@ -6,6 +6,9 @@ import axios from 'axios';
  * in production leave VITE_BACKEND_URL unset and
  * deploy the frontend under the same domain ➔ /api.
  */
+
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL + "/api",  // <- uses your backend URL
+  timeout: 10_000,
 });
