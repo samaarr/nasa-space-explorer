@@ -27,5 +27,10 @@ app.use("/api/neo-range", neoRangeRoute);
 // health-check for Render/Vercel probes
 app.get('/healthz', (_, res) => res.send('OK'));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Listening on ${PORT}`));
+const PORT = process.env.PORT;
+if (!PORT) {
+  console.error("❌ No PORT env var set!");
+  process.exit(1);
+}
+
+app.listen(PORT, () => console.log(`🚀  backend up on port ${PORT}`));
