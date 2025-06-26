@@ -1,14 +1,14 @@
-import axios from 'axios';
+import axios from "axios";
 
-/**
- * Single Axios instance shared across components.
- * During dev it points at http://localhost:5050;
- * in production leave VITE_BACKEND_URL unset and
- * deploy the frontend under the same domain ➔ /api.
- */
+// this must be defined in your Render (or Vercel) Static‐Site env
+// e.g. VITE_API_URL=https://nasa-space-explorer-2-hozv.onrender.com
+const API_URL = import.meta.env.VITE_API_URL;
 
+if (!API_URL) {
+  console.error("❌ VITE_API_URL is not set!");
+}
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/api",  // <- uses your backend URL
+  baseURL: `${API_URL}/api`,
   timeout: 10_000,
 });
