@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { api }          from "../services/nasaApi";
-import Spinner          from "../components/Spinner";
+import LoadingOverlay from "../components/LoadingOverlay";
 import ErrorBanner      from "../components/ErrorBanner";
 
 
 /**
- * MarsGallery — fetches Curiosity rover photos for a chosen date.
  * The backend route `/mars?date=YYYY-MM-DD` already uses the cache.
  */
 export default function MarsGallery() {
@@ -28,7 +27,7 @@ export default function MarsGallery() {
   }, [date]);
 
   /* ---------- UI states ---------- */
-  if (loading) return <Spinner />;
+  if (loading) return <LoadingOverlay />;
   if (error)   return <ErrorBanner msg="Mars rover service unavailable" />;
 
   /* ---------- main render ---------- */
