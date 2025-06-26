@@ -3,12 +3,12 @@
 // APIs including APOD, Mars Rover photos, Near-Earth Objects, and EPIC data.
 // It also includes a health-check endpoint for deployment platforms like Render or Vercel.
 
-require('dotenv').config();          // load .env first
+require('dotenv').config();          
 
 const express = require('express');
 const cors    = require('cors');
 
-const apodRoute = require('./routes/apod');   // each one IS a router function
+const apodRoute = require('./routes/apod');   
 const marsRoute = require('./routes/mars');
 const neoRoute  = require('./routes/neo');
 const epicRoute = require('./routes/epic');
