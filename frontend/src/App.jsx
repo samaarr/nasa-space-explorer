@@ -8,10 +8,6 @@ import FloatingWatermark from './components/FloatingWatermark';
 import EpicCarousel from './pages/EpicCarousel';
 
 
-import EarthDock from "./components/EarthDock";
-
-
-
 
 console.log('✅ App.jsx loaded');
 
@@ -30,7 +26,6 @@ export default function App() {
           <Route path="/neo" element={<NeoTracker />} />
           <Route path="/epic" element={<EpicCarousel />} />
         </Routes>
-        <EarthDock/>
         <FloatingWatermark />
         
       </div>

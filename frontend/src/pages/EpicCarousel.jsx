@@ -9,7 +9,7 @@ const preload = url =>
   new Promise(res => {
     const img = new Image();
     img.onload = res;
-    img.onerror = res;          // ignore failures—still resolve
+    img.onerror = res;          
     img.src = url;
   });
 

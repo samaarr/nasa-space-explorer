@@ -1,3 +1,8 @@
+// This is the entry point for the backend server
+// It sets up the Express server, loads environment variables, and configures routes for the NASA
+// APIs including APOD, Mars Rover photos, Near-Earth Objects, and EPIC data.
+// It also includes a health-check endpoint for deployment platforms like Render or Vercel.
+
 require('dotenv').config();          // load .env first
 
 const express = require('express');
@@ -23,4 +28,4 @@ app.use("/api/neo-range", neoRangeRoute);
 app.get('/healthz', (_, res) => res.send('OK'));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀  backend up on port ${PORT}`));
+app.listen(PORT, () => console.log(`Listening on ${PORT}`));
